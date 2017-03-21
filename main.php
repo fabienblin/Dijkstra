@@ -1,5 +1,6 @@
 <?php
-$file = "./file.txt";
+
+$file = $argv[3] ? $argv[3] : "./file0.txt";
 $handler = fopen($file, 'r');
 
 //formate le fichier sous forme d'array
@@ -11,6 +12,8 @@ if ($handler) {
     }
     fclose($handler);
 }
+else
+	exit("Unreadable");
 
 $C = intval($tab[0][0]);
 $F = intval($tab[0][1]);
@@ -68,41 +71,34 @@ function removeLinks($nodes, $ref)
 			if($target == $ref)
 			{
 				unset($node->links[$ref]);
-				print("removed link ".$ref." in node ".$node->self."\n");
-			}
+			}   
 		}
 	}
-	print("removed node : ".$nodes[$ref-1]->self."\n");
-	//var_dump($nodes[$ref-1]);
-	
 	unset($nodes[$ref-1]);
 	
 	return $nodes;
 }
 
 // recherche le chemin le moins cher
-function find($nodes, $current, $destination, $sum = NULL)
+function find($nodes, $current, $destination, $sum = NULL, &$best = NULL)
 {
-	print("-----------------------------\n");
 	//var_dump($nodes);
 	if($current->self == $destination->self)
 	{
-		print ("final sum = ".$sum." !!!!!\n");
+		if($best == NULL || $best > $sum)
+			$best = $sum;
 		return $sum;
 	}
 	
 	if($current->self != $destination->self)
 	{
-		$nodes = removeLinks($nodes, $current->self);
+		$nextNodes = removeLinks($nodes, $current->self);
 		foreach($current->links as $target => $weight)
 		{		
 			$next = $nodes[$target-1];
-			print("current = ".$current->self."\n");
-			print("next = ".$next->self."\n");
-			if($sum > ($find = find($nodes, $next, $destination, $sum + $weight)) || $sum == NULL)
-				$sum = $find;
+			$find = find($nextNodes, $next, $destination, $sum + $weight, $best);
 		}
-		return $sum;
+		return $best;
 	}
 }
 
